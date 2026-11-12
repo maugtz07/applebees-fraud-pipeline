@@ -15,6 +15,7 @@ resources:
             include: ../../src/transformations/**
       configuration:
         spark.databricks.photon.jsonScan.enabled: "false"
+        spark.databricks.cloudFiles.schemaInference.sampleSize.numFiles: "3"
         # Where the raw data lives
         source_root: ${var.source_root}
         source_checks_dir: facts/checks
