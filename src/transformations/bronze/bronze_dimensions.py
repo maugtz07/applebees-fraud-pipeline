@@ -14,7 +14,7 @@ def conf(key, default=None):
 
 
 SOURCE_ROOT = conf("source_root").rstrip("/")
-JSON_MULTILINE = conf("json_multiline", "true")
+JSON_MULTILINE = conf("json_multiline", "false")
 
 
 def read_json_folder(relative_dir):

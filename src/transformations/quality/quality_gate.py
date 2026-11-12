@@ -99,6 +99,7 @@ def quality_gate():
         F.count("*").alias("totals_checks"),
         F.count(F.when(~F.col("IsReconciled"), 1)).alias("unreconciled_checks"),
     )
+
     metrics = (
         expected.crossJoin(checks).crossJoin(items).crossJoin(voids)
         .crossJoin(discounts).crossJoin(payments).crossJoin(taxes).crossJoin(totals)

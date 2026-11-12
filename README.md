@@ -98,6 +98,20 @@ The first version of this project used fixed counts from the exploratory analysi
 4. Add the keys listed under `configuration` in `resources/pipelines/fraud_detection.pipeline.yml`.
 5. Run the pipeline.
 
+## Running on Databricks Free Edition
+
+Each source file holds a full day of checks as a single ~90 MB line of JSON. Serverless compute on Free Edition has little memory, so three settings in `fraud_detection.pipeline.yml` keep ingestion stable:
+
+| Setting | Why |
+| --- | --- |
+| `spark.databricks.photon.jsonScan.enabled: "false"` | Photon's JSON reader reserves more memory than serverless gives it; the standard Spark reader is used instead |
+| `json_multiline: "true"` | parses each file as a stream instead of copying the whole 90 MB line into memory |
+| `checks_max_files_per_batch: "1"` and `spark.databricks.cloudFiles.schemaInference.sampleSize.numFiles: "3"` | Auto Loader reads one file per batch and works out the schema from three files, not all of them |
+
+On larger compute these can be relaxed. Auto Loader keeps its progress, so if a run stops halfway, the next run continues from the last file it finished.
+
+When the pipeline is created for the first time, a table can read an empty version of a table created in that same run. If a first run fails with `TABLE_DOES_NOT_EXIST` on a `__materialization_...` table, or a gold table comes out empty, run the pipeline once more.
+
 ## Using it with another dataset
 
 The input has to follow the same export format: one JSON record per check with the nested arrays `ItemsSold`, `Discounts`, `Payments`, `Voids` and `Tax`, plus the location, revenue center and item catalogs. Beyond that, change only the configuration:
@@ -107,7 +121,8 @@ The input has to follow the same export format: one JSON record per check with t
 | `source_root` | Volume with the raw files | `/Volumes/workspace/default/applebeesdataset` |
 | `source_checks_dir` | folder with the check files | `facts/checks` |
 | `source_locations_dir`, `source_revenue_centers_dir`, `source_items_dir` | catalog folders | `dimensions/...` |
-| `json_multiline` | `true` when each file holds one JSON array (as in this dataset); `false` for one JSON record per line | `true` |
+| `json_multiline` | `true` reads each file as one JSON document (this dataset: one array per day); `false` for one JSON record per line | `true` |
+| `checks_max_files_per_batch` | how many check files Auto Loader reads per batch; raise it on larger compute | `1` |
 | `automatic_discount_names` | discounts the system applies without a manager | `PUNCHHOLO,GC BONUS` |
 | `void_category_aliases` | spelling variants of void categories to merge (JSON) | `{"SERV ERR": "SERVER ERR", ...}` |
 | `dq_max_pct_*` | quality tolerances, in percent | see above |

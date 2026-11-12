@@ -14,8 +14,12 @@ resources:
         - glob:
             include: ../../src/transformations/**
       configuration:
+        # Serverless gives Photon little memory for JSON; each source file is one
+        # ~90 MB line, so the standard Spark JSON reader is used instead.
         spark.databricks.photon.jsonScan.enabled: "false"
+        # Work out the schema of the check files from a few files instead of all of them.
         spark.databricks.cloudFiles.schemaInference.sampleSize.numFiles: "3"
+
         # Where the raw data lives
         source_root: ${var.source_root}
         source_checks_dir: facts/checks
@@ -23,6 +27,7 @@ resources:
         source_revenue_centers_dir: dimensions/revenue_centers
         source_items_dir: dimensions/items
         json_multiline: "true"
+        checks_max_files_per_batch: "1"
 
         # Business rules that differ between brands
         automatic_discount_names: "PUNCHHOLO,GC BONUS"
