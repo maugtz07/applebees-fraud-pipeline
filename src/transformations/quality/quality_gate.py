@@ -39,6 +39,7 @@ HARD_RULES = {
     "no_discounts_lost": "missing_discounts = 0",
     "no_payments_lost": "missing_payments = 0",
     "no_taxes_lost": "missing_taxes = 0",
+    "check_totals_complete": "totals_checks = silver_checks",
     "reconciliation_within_tolerance": f"pct_unreconciled_checks <= {MAX_PCT_UNRECONCILED}",
 }
 
@@ -95,9 +96,9 @@ def quality_gate():
     )
     taxes = spark.read.table("silver_taxes").agg(F.count("*").alias("silver_taxes"))
     totals = spark.read.table("silver_check_totals").agg(
-        F.sum((~F.col("IsReconciled")).cast("int")).alias("unreconciled_checks"),
+        F.count("*").alias("totals_checks"),
+        F.count(F.when(~F.col("IsReconciled"), 1)).alias("unreconciled_checks"),
     )
-
     metrics = (
         expected.crossJoin(checks).crossJoin(items).crossJoin(voids)
         .crossJoin(discounts).crossJoin(payments).crossJoin(taxes).crossJoin(totals)
