@@ -20,7 +20,7 @@ resources:
         source_locations_dir: dimensions/locations
         source_revenue_centers_dir: dimensions/revenue_centers
         source_items_dir: dimensions/items
-        json_multiline: "true"
+        json_multiline: "false"
 
         # Business rules that differ between brands
         automatic_discount_names: "PUNCHHOLO,GC BONUS"
