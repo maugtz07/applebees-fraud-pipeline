@@ -1,0 +1,24 @@
+# Bundle definition: the whole project (pipeline + job) described as code.
+# Change the variables below to point the pipeline at another dataset or schema.
+
+bundle:
+  name: applebees_fraud_pipeline
+
+include:
+  - resources/pipelines/*.yml
+  - resources/jobs/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog where the pipeline publishes its tables.
+    default: workspace
+  schema:
+    description: Schema where the pipeline publishes its tables.
+    default: fraud_ldp
+  source_root:
+    description: Root folder (Unity Catalog Volume) that holds the raw JSON files.
+    default: /Volumes/workspace/default/applebeesdataset
+
+targets:
+  dev:
+    default: true

@@ -1,0 +1,11 @@
+# Job that runs the pipeline. Add a schedule here if the data arrives regularly.
+
+resources:
+  jobs:
+    fraud_detection_job:
+      name: applebees_fraud_detection_job
+      tasks:
+        - task_key: refresh_fraud_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.fraud_detection_pipeline.id}
+            full_refresh: false

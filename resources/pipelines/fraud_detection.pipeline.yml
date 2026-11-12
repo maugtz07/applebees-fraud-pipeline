@@ -1,0 +1,38 @@
+# Lakeflow Declarative Pipeline: bronze -> silver -> quality gate -> gold.
+# Every value under `configuration` can be changed to run the same code on another dataset.
+
+resources:
+  pipelines:
+    fraud_detection_pipeline:
+      name: applebees_fraud_detection
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      channel: CURRENT
+      root_path: ../../src
+      libraries:
+        - glob:
+            include: ../../src/transformations/**
+      configuration:
+        # Where the raw data lives
+        source_root: ${var.source_root}
+        source_checks_dir: facts/checks
+        source_locations_dir: dimensions/locations
+        source_revenue_centers_dir: dimensions/revenue_centers
+        source_items_dir: dimensions/items
+        json_multiline: "true"
+
+        # Business rules that differ between brands
+        automatic_discount_names: "PUNCHHOLO,GC BONUS"
+        void_category_aliases: '{"SERV ERR": "SERVER ERR", "NOT RECEVD": "NOT RECVD"}'
+
+        # Quality gate tolerances (percentages, so they work for any data volume)
+        dq_max_pct_unreconciled_checks: "0.01"
+        dq_max_pct_self_approved_discounts: "1.0"
+        dq_max_pct_checks_without_items: "2.0"
+        dq_max_pct_negative_sold_price: "0.1"
+
+        # Peer-comparison settings for the gold tables
+        min_checks_per_employee: "100"
+        min_employees_per_location: "8"
+        tip_min_bill: "10"
