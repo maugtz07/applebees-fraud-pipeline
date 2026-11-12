@@ -19,10 +19,12 @@ def conf(key, default=None):
 
 SOURCE_ROOT = conf("source_root").rstrip("/")
 CHECKS_DIR = conf("source_checks_dir", "facts/checks").strip("/")
-JSON_MULTILINE = conf("json_multiline", "true")
-# Each source file holds a whole day of checks in one JSON array, so it must be
-# parsed in one piece. Reading a few files per batch keeps memory under control.
+JSON_MULTILINE = conf("json_multiline", "false")
+# Each source file holds a whole day of checks, so files are large.
+# Reading one file per batch keeps memory under control on small compute.
 MAX_FILES_PER_BATCH = conf("checks_max_files_per_batch", "1")
+# Files read to work out the schema. All days share one format, so a few are enough.
+SCHEMA_SAMPLE_FILES = conf("checks_schema_sample_files", "3")
 
 
 @dp.table(
@@ -39,6 +41,7 @@ def bronze_checks():
         .option("cloudFiles.inferColumnTypes", "true")
         .option("multiLine", JSON_MULTILINE)
         .option("cloudFiles.maxFilesPerTrigger", MAX_FILES_PER_BATCH)
+        .option("cloudFiles.schemaInference.sampleSize.numFiles", SCHEMA_SAMPLE_FILES)
         .option("pathGlobFilter", "*.json")
         .load(f"{SOURCE_ROOT}/{CHECKS_DIR}")
         .select(
