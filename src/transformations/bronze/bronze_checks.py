@@ -20,6 +20,9 @@ def conf(key, default=None):
 SOURCE_ROOT = conf("source_root").rstrip("/")
 CHECKS_DIR = conf("source_checks_dir", "facts/checks").strip("/")
 JSON_MULTILINE = conf("json_multiline", "true")
+# Each source file holds a whole day of checks in one JSON array, so it must be
+# parsed in one piece. Reading a few files per batch keeps memory under control.
+MAX_FILES_PER_BATCH = conf("checks_max_files_per_batch", "1")
 
 
 @dp.table(
@@ -35,6 +38,7 @@ def bronze_checks():
         .option("cloudFiles.format", "json")
         .option("cloudFiles.inferColumnTypes", "true")
         .option("multiLine", JSON_MULTILINE)
+        .option("cloudFiles.maxFilesPerTrigger", MAX_FILES_PER_BATCH)
         .option("pathGlobFilter", "*.json")
         .load(f"{SOURCE_ROOT}/{CHECKS_DIR}")
         .select(
